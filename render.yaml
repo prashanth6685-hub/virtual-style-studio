@@ -1,8 +1,3 @@
-databases:
-  - name: virtual-style-studio-db
-    databaseName: vss
-    plan: free
-
 services:
   - type: web
     name: virtual-style-studio
@@ -15,9 +10,11 @@ services:
         value: production
       - key: AI_PROVIDER
         value: pollinations
+      # Render free tier allows only ONE Postgres database per account, so the
+      # Blueprint no longer provisions one. Paste the External Database URL of
+      # your existing Render Postgres here at deploy time (Render will prompt
+      # for it). The app creates its own tables alongside anything already there.
       - key: DATABASE_URL
-        fromDatabase:
-          name: virtual-style-studio-db
-          property: connectionString
+        sync: false
       - key: JWT_SECRET
         generateValue: true

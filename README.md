@@ -89,8 +89,12 @@ Open http://localhost:5173. Try `AI_PROVIDER=mock` in `.env` for fully offline d
 
 1. Push this repo to GitHub.
 2. Go to **render.com → New → Blueprint**, point it at the repo (`render.yaml` is at the root).
-3. Render creates the **web service** (Docker, free) + **Postgres** (free), wires `DATABASE_URL`,
-   generates `JWT_SECRET`, and runs migrations automatically at container start.
+3. Render creates the **web service** (Docker, free) and generates `JWT_SECRET`.
+   It will ask for `DATABASE_URL`: Render's free tier allows only **one** Postgres
+   database per account, so paste the **External Database URL** of your existing
+   Render Postgres (Dashboard → Databases → your db → Info tab). The app creates
+   its own tables alongside anything already there, and migrations run automatically
+   at container start.
 4. Open the service URL on your phone — free tier sleeps after 15 min idle and wakes on traffic (~1 min cold start).
 
 > **Uploads on free tier:** Render's free plan has no persistent disk, so uploaded photos
