@@ -1,0 +1,19 @@
+node_modules/
+dist/
+dist-ssr/
+*.local
+.env
+.env.*
+!.env.example
+uploads/
+!uploads/.gitkeep
+coverage/
+*.tsbuildinfo
+.DS_Store
+# Raw generation assets (originals + JSON sidecars) — never commit.
+# Only the 4 renamed jpgs under client/public/examples/ are committed.
+assets/
+client/public/examples/media-generation-*
+client/public/examples/*.json
+server/prisma/*.db
+server/prisma/*.db-journal

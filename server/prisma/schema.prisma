@@ -1,0 +1,125 @@
+// Virtual Style Studio — Prisma schema (PostgreSQL).
+// Run `npx prisma generate --schema=server/prisma/schema.prisma` after install,
+// then `prisma migrate dev` (local) or `prisma migrate deploy` (prod).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String?  @unique
+  passwordHash String?
+  authProvider String   @default("email")
+  isGuest      Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  avatars      Avatar[]
+  looks        SavedLook[]
+  images       GeneratedImage[]
+  measurements Measurement[]
+  stylePrefs   StylePreference[]
+  aiJobs       AIJob[]
+  uploads      UploadedImage[]
+}
+
+model Avatar {
+  id         String   @id @default(cuid())
+  userId     String
+  name       String
+  personType String
+  config     Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model SavedLook {
+  id              String   @id @default(cuid())
+  userId          String
+  name            String
+  outfit          Json
+  resultImageUrl  String?
+  modelRef        Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model GeneratedImage {
+  id        String   @id @default(cuid())
+  userId    String?
+  jobId     String?
+  kind      String
+  url       String
+  prompt    String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([jobId])
+}
+
+model Measurement {
+  id         String @id @default(cuid())
+  userId     String @unique
+  heightCm   Float?
+  chestCm    Float?
+  waistCm    Float?
+  hipCm      Float?
+  shoulderCm Float?
+  inseamCm   Float?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model StylePreference {
+  id     String @id @default(cuid())
+  userId String @unique
+  prefs  Json
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AIJob {
+  id        String   @id @default(cuid())
+  userId    String?
+  type      String
+  status    String   @default("queued")
+  progress  Int      @default(0)
+  input     Json
+  result    Json?
+  error     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+}
+
+model UploadedImage {
+  id        String   @id @default(cuid())
+  userId    String?
+  filename  String   @unique
+  mime      String
+  size      Int
+  purpose   String   @default("tryon")
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}

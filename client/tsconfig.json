@@ -1,0 +1,1 @@
+{"compilerOptions":{"allowJs":false,"jsx":"react-jsx","lib":["ES2020","DOM","DOM.Iterable"],"module":"ESNext","moduleResolution":"bundler","noEmit":true,"paths":{"@vss/shared":["../packages/shared/src/index.ts"]},"target":"ES2020","types":["vite/client","vitest/globals","node"]},"extends":"../tsconfig.base.json","include":["src","vite.config.ts"]}

@@ -1,0 +1,24 @@
+# Local PostgreSQL for Virtual Style Studio development.
+# Usage: docker compose up -d
+# Then set DATABASE_URL=postgresql://vss:vss@localhost:5432/vss
+# (override user/password via POSTGRES_USER / POSTGRES_PASSWORD env).
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: vss-postgres
+    environment:
+      POSTGRES_DB: vss
+      POSTGRES_USER: ${POSTGRES_USER:-vss}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vss}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-vss} -d vss"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
