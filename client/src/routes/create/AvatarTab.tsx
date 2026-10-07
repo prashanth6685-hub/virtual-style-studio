@@ -7,8 +7,8 @@ import type { AvatarConfig, AvatarPose } from '../../avatar/types';
 import type { PersonType } from '@vss/shared';
 import { defaultAvatarConfig } from '../../avatar/avatarDefaults';
 import { validateAvatarConfig } from '../../avatar/validation';
-import { createAvatar, listAvatars, ApiError, type AvatarDto } from '../../lib/api';
-import { Swatch, SegmentedTabs, Modal } from '../../components/ui';
+import { createAvatar, generateAvatar, listAvatars, pollJob, ApiError, type AvatarDto, type GeneratedPerson } from '../../lib/api';
+import { Swatch, SegmentedTabs, Modal, Skeleton } from '../../components/ui';
 
 function Chips<T extends string>({
   label,
@@ -87,6 +87,9 @@ export default function AvatarTab() {
   const [showSaved, setShowSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState('');
+  const [genBusy, setGenBusy] = useState(false);
+  const [genProgress, setGenProgress] = useState(0);
+  const [realisticUrl, setRealisticUrl] = useState<string | null>(null);
 
   // keep config personType in sync if user switched person on /start
   const pt: PersonType = personType;
@@ -143,6 +146,42 @@ export default function AvatarTab() {
     }
   };
 
+  /** Generate a photorealistic person from the current parametric config. */
+  const makeRealistic = async () => {
+    if (errors.length) {
+      toast(`Please fix: ${errors[0]}`, 'error');
+      return;
+    }
+    setGenBusy(true);
+    setGenProgress(0);
+    setRealisticUrl(null);
+    try {
+      const { jobId } = await generateAvatar({ ...config, personType: pt });
+      const result = await pollJob<GeneratedPerson[]>(jobId, {
+        onProgress: (j) => setGenProgress(j.progress),
+      });
+      const url = result?.[0]?.url;
+      if (!url) {
+        toast('No image came back — try again.', 'error');
+        return;
+      }
+      setRealisticUrl(url);
+      toast('Realistic avatar ready.', 'success');
+    } catch (err) {
+      toast(err instanceof ApiError ? err.message : 'Generation failed. Try again.', 'error');
+    } finally {
+      setGenBusy(false);
+    }
+  };
+
+  /** Lock the generated realistic image in as this session's model. */
+  const useRealistic = () => {
+    if (!realisticUrl) return;
+    setModel({ kind: 'aiPerson', imageUrl: realisticUrl });
+    toast('Realistic model selected — opening the studio.', 'success');
+    navigate('/studio');
+  };
+
   return (
     <div className="grid grid-cols-1 gap-5 lg:grid-cols-[380px_1fr]">
       {/* Live preview */}
@@ -159,6 +198,34 @@ export default function AvatarTab() {
           <button onClick={useAvatar} className="btn-accent w-full">
             Use This Avatar →
           </button>
+          <button onClick={makeRealistic} disabled={genBusy} className="btn-primary w-full">
+            {genBusy ? `Creating your realistic avatar… ${Math.round(genProgress)}%` : '✨ Make it realistic'}
+          </button>
+          {(genBusy || realisticUrl) && (
+            <div className="card !p-3">
+              {genBusy && !realisticUrl && <Skeleton className="aspect-[3/4] w-full" aria-label="Generating realistic avatar" />}
+              {realisticUrl && (
+                <>
+                  <img
+                    src={realisticUrl}
+                    alt="Realistic AI avatar"
+                    className="aspect-[3/4] w-full rounded-2xl bg-ink-100 object-cover"
+                  />
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <button onClick={useRealistic} className="btn-accent !px-2 text-sm">
+                      Use this avatar →
+                    </button>
+                    <button onClick={makeRealistic} disabled={genBusy} className="btn-ghost !px-2 text-sm">
+                      ↻ Regenerate
+                    </button>
+                  </div>
+                  <p className="mt-2 text-xs text-ink-400">
+                    AI-generated and fully clothed — this image becomes your locked model for try-on.
+                  </p>
+                </>
+              )}
+            </div>
+          )}
           <div className="grid grid-cols-3 gap-2">
             <button onClick={saveAvatar} disabled={saving} className="btn-ghost !px-2 text-sm">
               {saving ? 'Saving…' : '💾 Save'}

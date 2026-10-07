@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   avatarBodySchema,
+  avatarRealisticSchema,
   loginSchema,
   peopleSchema,
   signupSchema,
@@ -108,6 +109,32 @@ describe('avatarBodySchema', () => {
     ).toBe(false);
     expect(
       avatarBodySchema.safeParse({ name: '', personType: 'woman', config: validAvatarConfig }).success,
+    ).toBe(false);
+  });
+});
+
+describe('avatarRealisticSchema', () => {
+  const numericSliders = {
+    ...validAvatarConfig,
+    body: { height: 0.6, build: 'athletic', shoulder: 0.5, waist: 0.4, hips: 0.55 },
+    ageGroup: 'senior',
+  };
+
+  it('accepts a valid avatar config (string or numeric sliders, senior age)', () => {
+    expect(avatarRealisticSchema.safeParse({ config: validAvatarConfig }).success).toBe(true);
+    expect(avatarRealisticSchema.safeParse({ config: numericSliders }).success).toBe(true);
+  });
+
+  it('rejects missing config, bad personType, and out-of-range skinTone', () => {
+    expect(avatarRealisticSchema.safeParse({}).success).toBe(false);
+    expect(
+      avatarRealisticSchema.safeParse({ config: { ...validAvatarConfig, personType: 'alien' } }).success,
+    ).toBe(false);
+    expect(
+      avatarRealisticSchema.safeParse({ config: { ...validAvatarConfig, skinTone: 13 } }).success,
+    ).toBe(false);
+    expect(
+      avatarRealisticSchema.safeParse({ config: { ...validAvatarConfig, hair: undefined } }).success,
     ).toBe(false);
   });
 });

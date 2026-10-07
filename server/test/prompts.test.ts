@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { avatarConfigToPersonPrefs } from '@vss/shared';
 import {
   BANNED_TERMS,
   buildPersonPrompt,
@@ -101,5 +102,48 @@ describe('isSafePrompt', () => {
   it('accepts neutral fashion descriptions', () => {
     expect(isSafePrompt('full-body portrait of a woman, brown skin, modest dress')).toBe(true);
     expect(isSafePrompt('child wearing modest everyday clothing, t-shirt and jeans')).toBe(true);
+  });
+});
+
+describe('avatarConfigToPersonPrefs → buildPersonPrompt', () => {
+  const girlConfig = {
+    personType: 'girl',
+    skinTone: 8,
+    undertone: 'neutral',
+    face: { shape: 'round', eyeShape: 'round', eyeColor: 'brown', brows: 'medium', nose: 'button', lips: 'full' },
+    hair: { color: '#211d18', length: 'long', texture: 'curly', style: 'braids' },
+    body: { height: 'average', build: 'average', shoulder: 'average', waist: 'average', hips: 'average' },
+    ageGroup: 'child',
+  } as const;
+
+  const boyConfig = {
+    ...girlConfig,
+    personType: 'boy',
+    hair: { color: '#5f4128', length: 'short', texture: 'straight', style: 'crew' },
+  } as const;
+
+  it('kid configs produce modest children\'s-clothing prompts that pass the gate', () => {
+    for (const config of [girlConfig, boyConfig]) {
+      const filters = avatarConfigToPersonPrefs(config);
+      const prompt = buildPersonPrompt(filters);
+      expect(prompt, `${config.personType} prompt`).toContain("children's clothing");
+      expect(prompt).toContain('fully clothed');
+      expect(isSafePrompt(prompt), `${config.personType} prompt passes gate`).toBe(true);
+    }
+  });
+
+  it('man configs with facial hair stay neutral and safe', () => {
+    const filters = avatarConfigToPersonPrefs({
+      personType: 'man',
+      skinTone: 3,
+      undertone: 'cool',
+      face: { shape: 'square', eyeShape: 'almond', eyeColor: 'blue', brows: 'thick', nose: 'straight', lips: 'medium', facialHair: 'beard' },
+      hair: { color: '#c99a4e', length: 'short', texture: 'straight', style: 'fade' },
+      body: { height: 'average', build: 'athletic', shoulder: 'average', waist: 'average', hips: 'average' },
+      ageGroup: 'adult',
+    } as const);
+    const prompt = buildPersonPrompt(filters);
+    expect(prompt).toContain('with beard facial hair');
+    expect(isSafePrompt(prompt)).toBe(true);
   });
 });

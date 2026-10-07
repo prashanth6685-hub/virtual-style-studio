@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../state/AppContext';
 import {
-  logout as apiLogout,
+  guest as apiGuest,
   getMeasurements,
   saveMeasurements,
   getStylePrefs,
@@ -23,7 +23,7 @@ const MEASURE_FIELDS: { key: keyof Measurement; label: string }[] = [
   { key: 'inseamCm', label: 'Inseam (cm)' },
 ];
 
-/** /profile — account, measurements, style prefs, data controls, logout. */
+/** /profile — measurements, style prefs, data controls. No sign-in, ever. */
 export default function Profile() {
   const { user, setUser, toast, authChecked } = useApp();
   const navigate = useNavigate();
@@ -72,17 +72,6 @@ export default function Profile() {
     }
   };
 
-  const doLogout = async () => {
-    try {
-      await apiLogout();
-    } catch {
-      /* ignore */
-    }
-    setUser(null);
-    toast('Logged out.', 'success');
-    navigate('/');
-  };
-
   const doDelete = async () => {
     if (!confirm) return;
     setBusy(true);
@@ -92,7 +81,12 @@ export default function Profile() {
         toast('Your photos were deleted.', 'success');
       } else {
         await deleteMyData();
-        setUser(null);
+        // Fresh anonymous identity so the app keeps working without a sign-in.
+        try {
+          setUser(await apiGuest());
+        } catch {
+          setUser(null);
+        }
         toast('Your data was deleted.', 'success');
         navigate('/');
       }
@@ -107,15 +101,11 @@ export default function Profile() {
   if (authChecked && !user) {
     return (
       <div className="mx-auto max-w-xl">
-        <PageTitle title="Profile" sub="You're browsing as a guest." />
+        <PageTitle title="Profile" sub="Your style space." />
         <div className="card text-center">
           <p className="text-sm text-ink-500">
-            Log in or create an account to save avatars, looks and measurements across devices.
+            No account needed — your avatars and looks are saved on this device.
           </p>
-          <div className="mt-4 flex gap-2">
-            <Link to="/login" className="btn-primary flex-1">Log in</Link>
-            <Link to="/signup" className="btn-ghost flex-1">Sign up</Link>
-          </div>
         </div>
       </div>
     );
@@ -123,21 +113,15 @@ export default function Profile() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-5">
-      <PageTitle title="Profile" sub="Your account and preferences." />
+      <PageTitle title="Profile" sub="Your measurements and preferences." />
 
-      {/* Account */}
-      <section className="card" aria-labelledby="account-h">
-        <h2 id="account-h" className="mb-2 font-bold text-ink-900">Account</h2>
-        {user ? (
-          <dl className="space-y-1 text-sm">
-            <div className="flex justify-between"><dt className="text-ink-400">Email</dt><dd className="font-semibold">{user.email ?? '—'}</dd></div>
-            <div className="flex justify-between"><dt className="text-ink-400">Account type</dt><dd className="font-semibold">{user.isGuest ? 'Guest' : 'Member'}</dd></div>
-            <div className="flex justify-between"><dt className="text-ink-400">Member since</dt><dd className="font-semibold">{new Date(user.createdAt).toLocaleDateString()}</dd></div>
-          </dl>
-        ) : (
-          <SkeletonLine />
-        )}
-        <button onClick={doLogout} className="btn-ghost mt-4 w-full">Log out</button>
+      {/* No sign-in */}
+      <section className="card" aria-labelledby="nosignin-h">
+        <h2 id="nosignin-h" className="mb-1 font-bold text-ink-900">No account needed</h2>
+        <p className="text-sm text-ink-500">
+          Everything here works without signing in, ever. Your avatars and looks are saved
+          on this device.
+        </p>
       </section>
 
       {/* Measurements */}
@@ -217,7 +201,7 @@ export default function Profile() {
         <p className="text-sm text-ink-600">
           {confirm === 'photos'
             ? 'This permanently deletes every photo you uploaded. Avatars and saved looks that reference them will lose their images.'
-            : 'This permanently deletes your account, photos, avatars, looks, measurements and preferences. This cannot be undone.'}
+            : 'This permanently deletes everything — avatars, looks, photos, measurements and preferences. This cannot be undone.'}
         </p>
         <div className="mt-4 flex gap-2">
           <button onClick={() => setConfirm(null)} className="btn-ghost flex-1">Cancel</button>
@@ -228,8 +212,4 @@ export default function Profile() {
       </Modal>
     </div>
   );
-}
-
-function SkeletonLine() {
-  return <div className="skeleton h-5 w-2/3" />;
 }

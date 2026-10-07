@@ -185,6 +185,12 @@ export interface PersonFilters {
 export const generatePeople = (filters: PersonFilters = {}, count = 8) =>
   post<PeopleJobResponse>('/api/ai/people', { filters, count });
 
+/** Generate one photorealistic person from a parametric avatar config. */
+export const generateAvatar = (config: AvatarConfig) =>
+  post<{ jobId: string }>('/api/ai/avatar', {
+    config: config as unknown as SharedAvatarConfig,
+  });
+
 export const getJob = (jobId: string) => get<JobResult>(`/api/ai/jobs/${jobId}`);
 
 export interface PollOptions {

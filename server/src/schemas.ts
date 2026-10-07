@@ -64,13 +64,14 @@ const avatarConfigSchema = z.object({
     style: z.string().max(40),
   }),
   body: z.object({
-    height: z.string().max(40),
+    // the client sends slider positions as numbers; accept strings too
+    height: z.union([z.string().max(40), z.number()]),
     build: z.string().max(40),
-    shoulder: z.string().max(40),
-    waist: z.string().max(40),
-    hips: z.string().max(40),
+    shoulder: z.union([z.string().max(40), z.number()]),
+    waist: z.union([z.string().max(40), z.number()]),
+    hips: z.union([z.string().max(40), z.number()]),
   }),
-  ageGroup: z.enum(['child', 'teen', 'adult']),
+  ageGroup: z.enum(['child', 'teen', 'adult', 'senior']),
   pose: z.enum(['front', 'side', 'three-quarter']).optional(),
 });
 
@@ -99,6 +100,15 @@ export const peopleSchema = z.object({
     })
     .default({ personType: 'woman' as const }),
   count: z.number().int().min(1).max(8).default(8),
+});
+
+/**
+ * POST /api/ai/avatar — photorealistic person from a parametric avatar config.
+ * Reuses the shared avatarConfigSchema (numeric sliders + 'senior' accepted);
+ * the config is mapped server-side to PersonFilters via avatarConfigToPersonPrefs.
+ */
+export const avatarRealisticSchema = z.object({
+  config: avatarConfigSchema,
 });
 
 export const suggestSchema = z.object({

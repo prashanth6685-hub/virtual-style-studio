@@ -13,7 +13,7 @@ import type { AvatarConfig as SharedAvatarConfig } from '@vss/shared';
 import type { AvatarConfig } from '../avatar/types';
 import { sanitizeAvatarConfig } from '../avatar/validation';
 import { outfitReducer, EMPTY_OUTFIT, type OutfitSlot } from './outfit';
-import { me as apiMe, type PublicUser } from '../lib/api';
+import { me as apiMe, guest as apiGuest, type PublicUser } from '../lib/api';
 
 export interface Toast {
   id: number;
@@ -114,19 +114,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [model]);
 
-  // check session on boot (non-blocking; failures just mean logged out)
+  // Establish a session on boot. No sign-in UX exists anywhere: try the
+  // existing session first, then silently mint a guest identity. Retry the
+  // whole attempt once; failures are silent — the user is never asked to log in.
   useEffect(() => {
     let alive = true;
-    apiMe()
-      .then((u) => {
-        if (alive) setUser(u);
-      })
-      .catch(() => {
-        /* not logged in */
-      })
-      .finally(() => {
-        if (alive) setAuthChecked(true);
-      });
+    const attempt = async (): Promise<PublicUser> => {
+      try {
+        return await apiMe();
+      } catch {
+        return await apiGuest();
+      }
+    };
+    (async () => {
+      for (let i = 0; i < 2; i++) {
+        try {
+          const u = await attempt();
+          if (alive) setUser(u);
+          break;
+        } catch {
+          /* retry once, then give up silently */
+        }
+      }
+      if (alive) setAuthChecked(true);
+    })();
     return () => {
       alive = false;
     };

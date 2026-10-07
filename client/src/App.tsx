@@ -10,7 +10,6 @@ import Generator from './routes/Generator';
 import Looks from './routes/Looks';
 import Profile from './routes/Profile';
 import Privacy from './routes/Privacy';
-import { AuthPage } from './routes/Auth';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -34,8 +33,6 @@ export default function App() {
         <Route path="/looks" element={<Looks />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/privacy" element={<Privacy />} />
-        <Route path="/login" element={<AuthPage mode="login" />} />
-        <Route path="/signup" element={<AuthPage mode="signup" />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>

@@ -66,6 +66,7 @@ export function buildPersonPrompt(filters: PersonFilters): string {
     skinDescriptor(filters),
     filters.hairColor ? `${filters.hairColor} hair` : 'natural hair',
     filters.hairStyle ? `${filters.hairStyle} hairstyle` : 'neat hairstyle',
+    ...(filters.facialHair ? [`with ${filters.facialHair} facial hair`] : []),
     filters.bodyType ? `${filters.bodyType} build` : 'average build',
     isKid
       ? 'wearing modest everyday children\'s clothing (t-shirt and jeans)'

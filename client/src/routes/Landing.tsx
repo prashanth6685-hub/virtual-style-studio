@@ -123,7 +123,7 @@ export default function Landing() {
             Privacy
           </Link>
           <Link to="/profile" className="font-semibold hover:text-ink-700">
-            Account
+            Profile
           </Link>
           <span aria-hidden="true">·</span>
           <span>Virtual Style Studio — Phase 1 MVP</span>

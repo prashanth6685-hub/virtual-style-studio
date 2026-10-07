@@ -49,6 +49,7 @@ Only `upload` / `aiPerson` models go through the async AI job pipeline.
 
 ### AI jobs (async)
 - `POST /api/ai/people` `{filters:{personType, ageGroup?, skinTone?, undertone?, hairColor?, hairStyle?, bodyType?}, count?}` (1–8, default 8) → `202 {jobId}`
+- `POST /api/ai/avatar` `{config: AvatarConfig}` → `202 {jobId}` — maps the parametric avatar config to neutral PersonFilters via `avatarConfigToPersonPrefs` (`@vss/shared`) and runs the same pipeline as `/people` with count=1 (same prompt guardrails; kids get modest children's clothing). Result is `GeneratedPerson[]` with one entry.
 - `GET /api/ai/jobs/:id` → `{status:'queued'|'processing'|'done'|'failed', progress:0-100, result?, error?}` (`404` for unknown id)
 
 ### Try-on

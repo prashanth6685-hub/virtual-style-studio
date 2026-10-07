@@ -20,13 +20,14 @@ export default function Privacy() {
           <h2 className="mb-1 font-bold text-ink-950">🤖 AI-generated images</h2>
           <p>
             AI people and try-on results are generated on demand for you. They are private to
-            your account, served from unguessable URLs, and deleted when you delete them.
+            you, served from unguessable URLs, and deleted when you delete them.
           </p>
         </section>
         <section>
           <h2 className="mb-1 font-bold text-ink-950">🧒 Children</h2>
           <p>
-            Accounts for under-13s are guest-only with minimal data and no marketing, ever.
+            No account is needed to use this site — just open it and start styling. For
+            under-13s we collect minimal data and never do marketing.
             Kids' catalogs are automatically filtered to modest, age-appropriate clothing.
           </p>
         </section>
@@ -34,15 +35,15 @@ export default function Privacy() {
           <h2 className="mb-1 font-bold text-ink-950">🗑️ Deletion</h2>
           <p>
             <strong>Delete my photos</strong> removes every uploaded image. <strong>Delete my
-            data</strong> removes your account and everything in it — avatars, looks,
-            measurements and preferences. Deletion is immediate and permanent.
+            data</strong> removes everything — avatars, looks, measurements and preferences.
+            Deletion is immediate and permanent.
           </p>
         </section>
         <section>
           <h2 className="mb-1 font-bold text-ink-950">🔐 Security</h2>
           <p>
-            Passwords are stored as salted hashes, sessions live in httpOnly cookies, and every
-            request is scoped so you can only ever touch your own data.
+            Sessions live in secure httpOnly cookies, and every request is scoped so you
+            can only ever touch your own data.
           </p>
         </section>
         <section>

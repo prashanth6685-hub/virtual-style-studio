@@ -2,6 +2,7 @@ import { describe, expect, it, vi, afterEach } from 'vitest';
 import {
   ApiError,
   buildUrl,
+  generateAvatar,
   generatePeople,
   login,
   matchColors,
@@ -74,6 +75,28 @@ describe('api client requests', () => {
     });
     const res = await generatePeople({ ageGroup: 'adult' }, 8);
     expect(res.jobId).toBe('job-1');
+  });
+
+  it('generateAvatar POSTs the avatar config to /api/ai/avatar', async () => {
+    const config = {
+      personType: 'man',
+      skinTone: 4,
+      undertone: 'neutral',
+      face: { shape: 'oval', eyeShape: 'almond', eyeColor: 'brown', brows: 'thick', nose: 'straight', lips: 'medium', facialHair: 'beard', makeup: 'none' },
+      hair: { color: '#211d18', length: 'short', texture: 'straight', style: 'fade' },
+      body: { height: 0.5, build: 'athletic', shoulder: 0.5, waist: 0.5, hips: 0.5 },
+      ageGroup: 'adult',
+    } as const;
+    mockFetchOnce((url, init) => {
+      expect(url).toBe('/api/ai/avatar');
+      expect(init?.method).toBe('POST');
+      const body = JSON.parse(String(init?.body));
+      expect(body.config.personType).toBe('man');
+      expect(body.config.face.facialHair).toBe('beard');
+      return { status: 202, body: { jobId: 'job-9' } };
+    });
+    const res = await generateAvatar(config);
+    expect(res.jobId).toBe('job-9');
   });
 
   it('throws ApiError with the server message on failure', async () => {

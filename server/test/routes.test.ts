@@ -180,3 +180,45 @@ describe('misc', () => {
     expect(res.body.error.code).toBe('NOT_FOUND');
   });
 });
+
+describe('POST /api/ai/avatar', () => {
+  it('202s with a jobId and the mock job completes with one person', async () => {
+    process.env.AI_PROVIDER = 'mock';
+    try {
+      const res = await request(app)
+        .post('/api/ai/avatar')
+        .set('Cookie', cookie)
+        .send({ config: validAvatarConfig });
+      expect(res.status).toBe(202);
+      expect(typeof res.body.jobId).toBe('string');
+
+      let job: { status: string; result?: { url: string }[] } | undefined;
+      for (let i = 0; i < 30; i++) {
+        const r = await request(app).get(`/api/ai/jobs/${res.body.jobId}`).set('Cookie', cookie);
+        expect(r.status).toBe(200);
+        job = r.body;
+        if (job!.status === 'done' || job!.status === 'failed') break;
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+      expect(job!.status).toBe('done');
+      expect(job!.result).toHaveLength(1);
+      expect(job!.result![0].url).toContain('placehold.co');
+    } finally {
+      delete process.env.AI_PROVIDER;
+    }
+  });
+
+  it('400s on an invalid config', async () => {
+    const res = await request(app)
+      .post('/api/ai/avatar')
+      .set('Cookie', cookie)
+      .send({ config: { ...validAvatarConfig, personType: 'alien' } });
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION');
+  });
+
+  it('401s without a session', async () => {
+    const res = await request(app).post('/api/ai/avatar').send({ config: validAvatarConfig });
+    expect(res.status).toBe(401);
+  });
+});

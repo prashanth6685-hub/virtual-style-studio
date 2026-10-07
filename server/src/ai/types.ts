@@ -28,6 +28,8 @@ export interface PersonFilters {
   hairColor?: string;
   hairStyle?: string;
   bodyType?: string;
+  /** e.g. 'goatee' | 'beard' — men only; prompt stays neutral. */
+  facialHair?: string;
 }
 
 export interface GeneratedPerson {
