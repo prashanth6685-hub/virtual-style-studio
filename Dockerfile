@@ -2,6 +2,9 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
+# Prisma's engines need OpenSSL (not shipped in Alpine slim images)
+RUN apk add --no-cache openssl
+
 COPY package.json package-lock.json ./
 COPY packages/shared/package.json packages/shared/
 COPY server/package.json server/
@@ -23,6 +26,9 @@ RUN npm run build --workspace @vss/client
 FROM node:20-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
+
+# Prisma's engines need OpenSSL (not shipped in Alpine slim images)
+RUN apk add --no-cache openssl
 
 COPY package.json package-lock.json ./
 COPY packages/shared/package.json packages/shared/
